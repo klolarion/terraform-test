@@ -1,0 +1,49 @@
+################################################################################
+# AWS Region Configuration
+################################################################################
+# Description: AWS 리전 설정
+# - default: ap-northeast-2 (Seoul)
+################################################################################
+
+variable "aws_region" {
+  description = "AWS 리전"
+  type        = string
+  default     = "ap-northeast-2"
+}
+
+################################################################################
+# VPC Configuration
+################################################################################
+# Description: VPC CIDR 블록 설정
+# - default: 10.0.0.0/16
+################################################################################
+
+variable "vpc_cidr" {
+  description = "VPC CIDR 블록"
+  type        = string
+  default     = "10.0.0.0/16"
+}
+
+################################################################################
+# Subnet Configuration
+################################################################################
+# Description: 서브넷 CIDR 블록 및 가용 영역 설정
+################################################################################
+
+variable "public_subnet_cidr" {
+  description = "Public 서브넷 CIDR 블록"
+  type        = string
+  default     = "10.0.1.0/24"
+}
+
+variable "private_subnet_cidr" {
+  description = "Private 서브넷 CIDR 블록"
+  type        = string
+  default     = "10.0.2.0/24"
+}
+
+variable "availability_zone" {
+  description = "가용 영역"
+  type        = string
+  default     = "ap-northeast-2a"
+}
