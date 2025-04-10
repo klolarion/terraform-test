@@ -1,11 +1,5 @@
-################################################################################
-# AWS Provider Configuration
-################################################################################
-# Description: AWS Provider 설정
-# - region: AWS 리전을 variables.tf에서 정의한 값으로 설정
-# - default: ap-northeast-2 (Seoul)
-################################################################################
-
+# AWS Provider 설정
+# - region: AWS 리전 설정 (variables.tf에서 정의)
 provider "aws" {
   region = var.aws_region
 }
