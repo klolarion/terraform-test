@@ -8,7 +8,7 @@ resource "aws_s3_bucket" "main_s3" {
   # 버킷 보호 설정
   lifecycle {
     # true로 설정하면 terraform destroy 명령으로도 버킷이 삭제되지 않음
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
