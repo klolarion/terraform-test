@@ -15,5 +15,9 @@ terraform {
       # ~> 5.0 : 5.x 버전 사용 (5.1, 5.2 등 사용 가능, 6.0 이상 사용 불가)
       version = "~> 5.0"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 4.0"
+    }
   }
 } 

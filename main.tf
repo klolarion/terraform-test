@@ -3,3 +3,8 @@
 provider "aws" {
   region = var.aws_region
 }
+
+# CloudFlare Provider 설정
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}

@@ -6,18 +6,34 @@ resource "aws_vpc" "main_vpc" {
   tags       = { Name = "main-vpc" }
 }
 
+
+
 # Public 서브넷 생성 (인터넷 접근 가능)
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_c" {
   # 서브넷이 생성될 VPC ID
   vpc_id                  = aws_vpc.main_vpc.id
   # 서브넷 IP 주소 범위
-  cidr_block              = var.public_subnet_cidr
+  cidr_block              = var.public_subnet_cidr_c
   # 서브넷에 생성되는 인스턴스에 자동으로 퍼블릭 IP 할당
   map_public_ip_on_launch = true
   # 서브넷이 생성될 가용 영역
   availability_zone       = var.availability_zone_c
   # 서브넷 이름 태그
-  tags                    = { Name = "public-subnet" }
+  tags                    = { Name = "public-subnet_c" }
+}
+
+# Public 서브넷 생성 (인터넷 접근 가능)
+resource "aws_subnet" "public_subnet_a" {
+  # 서브넷이 생성될 VPC ID
+  vpc_id                  = aws_vpc.main_vpc.id
+  # 서브넷 IP 주소 범위
+  cidr_block              = var.public_subnet_cidr_a
+  # 서브넷에 생성되는 인스턴스에 자동으로 퍼블릭 IP 할당
+  map_public_ip_on_launch = true
+  # 서브넷이 생성될 가용 영역
+  availability_zone       = var.availability_zone_a
+  # 서브넷 이름 태그
+  tags                    = { Name = "public-subnet_a" }
 }
 
 # Private 서브넷 1 생성 (c 가용영역)
@@ -69,7 +85,7 @@ resource "aws_nat_gateway" "main_nat" {
   # NAT Gateway에 연결될 EIP ID
   allocation_id = aws_eip.nat.id
   # NAT Gateway가 생성될 서브넷 ID (반드시 Public 서브넷이어야 함)
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet_c.id
   # NAT Gateway 이름 태그
   tags          = { Name = "main-nat" }
 }
@@ -111,9 +127,16 @@ resource "aws_route" "private_route" {
 }
 
 # Public 서브넷과 라우트 테이블 연결
-resource "aws_route_table_association" "public_rta" {
+resource "aws_route_table_association" "public_rt_c" {
   # 연결할 서브넷 ID
-  subnet_id      = aws_subnet.public_subnet.id
+  subnet_id      = aws_subnet.public_subnet_c.id
+  # 연결할 라우트 테이블 ID
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_rt_a" {
+  # 연결할 서브넷 ID
+  subnet_id      = aws_subnet.public_subnet_a.id
   # 연결할 라우트 테이블 ID
   route_table_id = aws_route_table.public_rt.id
 }
@@ -132,10 +155,10 @@ resource "aws_route_table_association" "private_rta_2" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-# 보안 그룹 (EC2)
-resource "aws_security_group" "ec2" {
-  name        = "ec2-sg"
-  description = "Security group for EC2"
+# 보안 그룹 (ALB)
+resource "aws_security_group" "alb" {
+  name        = "alb-sg"
+  description = "Security group for ALB"
   vpc_id      = aws_vpc.main_vpc.id
 
   ingress {
@@ -143,6 +166,52 @@ resource "aws_security_group" "ec2" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "alb-sg"
+  }
+}
+
+# 보안 그룹 (EC2)
+resource "aws_security_group" "ec2" {
+  name        = "ec2-sg"
+  description = "Security group for EC2"
+  vpc_id      = aws_vpc.main_vpc.id
+
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+  }
+
+  ingress {
+    from_port       = 9090
+    to_port         = 9090
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
   }
 
   egress {

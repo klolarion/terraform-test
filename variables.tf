@@ -13,10 +13,17 @@ variable "vpc_cidr" {
 }
 
 # Public 서브넷의 IP 주소 범위 설정
-variable "public_subnet_cidr" {
+variable "public_subnet_cidr_c" {
   description = "Public 서브넷 CIDR 블록"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = "10.0.5.0/24"
+}
+
+# Public 서브넷의 IP 주소 범위 설정
+variable "public_subnet_cidr_a" {
+  description = "Public 서브넷 CIDR 블록"
+  type        = string
+  default     = "10.0.6.0/24"
 }
 
 # Private 서브넷의 IP 주소 범위 설정
@@ -64,7 +71,25 @@ variable "restore_from_snapshot" {
 variable "secret_manager_arn" {
   description = "시크릿 매니저 ARN"
   type        = string
+}
+
+# Route53 호스팅 영역 ID 변수
+variable "route53_zone_id" {
+  description = "Route53 호스팅 영역 ID"
+  type        = string
+}
+
+# ACM 인증서 ARN 변수
+variable "acm_certificate_arn" {
+  description = "ACM 인증서 ARN"
+  type        = string
   default     = ""
+}
+
+# 도메인 이름 변수
+variable "domain_name" {
+  description = "도메인 이름"
+  type        = string
 }
 
 # 시크릿 매니저에서 DB 자격 증명 가져오기
@@ -76,5 +101,16 @@ data "aws_secretsmanager_secret_version" "db_credentials" {
 data "aws_db_snapshot" "latest" {
   db_instance_identifier = "terraform-rds"
   most_recent           = true
+}
+
+variable "cloudflare_api_token" {
+  description = "CloudFlare API 토큰"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "CloudFlare Zone ID"
+  type        = string
 }
 
