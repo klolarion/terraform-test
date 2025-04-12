@@ -82,3 +82,56 @@ resource "aws_s3_bucket_policy" "main_s3_policy" {
     ]
   })
 }
+
+# ECR 리포지토리 생성
+resource "aws_ecr_repository" "app" {
+  # 리포지토리 이름 설정
+  name = "app-repository"
+  
+  # 이미지 태그 불변성 설정
+  # - IMMUTABLE: 이미지 태그 덮어쓰기 방지
+  # - MUTABLE: 이미지 태그 덮어쓰기 허용
+  image_tag_mutability = "IMMUTABLE"
+  
+  # 이미지 스캔 설정
+  # - scan_on_push: 이미지 푸시 시 자동 보안 스캔
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+  
+  # 리포지토리 태그 설정
+  tags = {
+    Name = "app-repository"
+  }
+}
+
+# ECR 리포지토리 수명 주기 정책
+resource "aws_ecr_lifecycle_policy" "app" {
+  # 정책이 적용될 리포지토리 이름
+  repository = aws_ecr_repository.app.name
+  
+  # 수명 주기 정책 설정
+  policy = jsonencode({
+    rules = [
+      {
+        # 규칙 우선순위 (낮을수록 우선순위 높음)
+        rulePriority = 1
+        # 규칙 설명
+        description  = "Keep last 30 images"
+        # 이미지 선택 조건
+        selection = {
+          # 태그 상태 (any: 모든 태그)
+          tagStatus   = "any"
+          # 카운트 타입 (imageCountMoreThan: 이미지 개수 기준)
+          countType   = "imageCountMoreThan"
+          # 최대 보관 이미지 수
+          countNumber = 30
+        }
+        # 규칙 동작 (expire: 만료 처리)
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
