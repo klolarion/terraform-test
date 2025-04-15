@@ -153,6 +153,11 @@ resource "aws_lb_target_group_attachment" "app_9090" {
   port             = 9090
 }
 
+
+
+
+
+
 # RDS 서브넷 그룹
 resource "aws_db_subnet_group" "main" {
   name       = "main"

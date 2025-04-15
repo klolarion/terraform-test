@@ -6,8 +6,6 @@ resource "aws_vpc" "main_vpc" {
   tags       = { Name = "main-vpc" }
 }
 
-
-
 # Public 서브넷 생성 (인터넷 접근 가능)
 resource "aws_subnet" "public_subnet_c" {
   # 서브넷이 생성될 VPC ID

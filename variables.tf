@@ -2,56 +2,126 @@
 variable "aws_region" {
   description = "AWS 리전"
   type        = string
-  default     = "ap-northeast-2"
 }
 
-# VPC의 IP 주소 범위 설정
+# VPC 설정
 variable "vpc_cidr" {
-  description = "VPC CIDR 블록"
+  description = "VPC CIDR"
   type        = string
-  default     = "10.0.0.0/16"
 }
 
-# Public 서브넷의 IP 주소 범위 설정
+variable "vpc_name" {
+  description = "VPC 이름"
+  type        = string
+}
+
+# 서브넷 설정
 variable "public_subnet_cidr_c" {
-  description = "Public 서브넷 CIDR 블록"
+  description = "퍼블릭 서브넷 CIDR (C 존)"
   type        = string
-  default     = "10.0.5.0/24"
 }
 
-# Public 서브넷의 IP 주소 범위 설정
 variable "public_subnet_cidr_a" {
-  description = "Public 서브넷 CIDR 블록"
+  description = "퍼블릭 서브넷 CIDR (A 존)"
   type        = string
-  default     = "10.0.6.0/24"
 }
 
-# Private 서브넷의 IP 주소 범위 설정
 variable "private_subnet_cidr_c" {
-  description = "Private 서브넷 CIDR 블록"
+  description = "프라이빗 서브넷 CIDR (C 존)"
   type        = string
-  default     = "10.0.2.0/24"
 }
 
 variable "private_subnet_cidr_a" {
-  description = "Private 서브넷 CIDR 블록"
+  description = "프라이빗 서브넷 CIDR (A 존)"
   type        = string
-  default     = "10.0.3.0/24"
 }
 
-# 인스턴스가 생성될 가용 영역 설정
+# 가용영역 설정
 variable "availability_zone_c" {
-  description = "가용 영역"
+  description = "가용영역 C"
   type        = string
-  default     = "ap-northeast-2c"
 }
 
 variable "availability_zone_a" {
-  description = "가용 영역"
+  description = "가용영역 A"
   type        = string
-  default     = "ap-northeast-2a"
 }
 
+# S3 설정
+variable "bucket_name" {
+  description = "S3 버킷 이름"
+  type        = string
+}
+
+variable "force_destroy" {
+  description = "버킷 강제 삭제 여부"
+  type        = bool
+}
+
+variable "prevent_destroy" {
+  description = "버킷 삭제 방지 여부"
+  type        = bool
+}
+
+variable "block_public_access" {
+  description = "퍼블릭 액세스 차단 여부"
+  type        = bool
+}
+
+variable "tags" {
+  description = "리소스 태그"
+  type        = map(string)
+}
+
+# ECR 설정
+variable "repository_name" {
+  description = "ECR 저장소 이름"
+  type        = string
+}
+
+variable "image_tag_mutability" {
+  description = "이미지 태그 변경 가능 여부"
+  type        = string
+}
+
+variable "scan_on_push" {
+  description = "푸시 시 스캔 여부"
+  type        = bool
+}
+
+variable "max_image_count" {
+  description = "최대 이미지 수"
+  type        = number
+}
+
+# CloudFlare 설정
+variable "cloudflare_api_token" {
+  description = "CloudFlare API 토큰"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_zone_id" {
+  description = "CloudFlare Zone ID"
+  type        = string
+}
+
+variable "domain_name" {
+  description = "도메인 이름"
+  type        = string
+}
+
+# Route53 설정
+variable "route53_zone_id" {
+  description = "Route53 Zone ID"
+  type        = string
+}
+
+# Secrets Manager 설정
+variable "secret_manager_arn" {
+  description = "Secrets Manager ARN"
+  type        = string
+}
 
 # 스냅샷 이름 변수
 variable "snapshot_name" {
@@ -67,31 +137,6 @@ variable "restore_from_snapshot" {
   default     = false
 }
 
-# 시크릿 매니저 ARN 변수
-variable "secret_manager_arn" {
-  description = "시크릿 매니저 ARN"
-  type        = string
-}
-
-# Route53 호스팅 영역 ID 변수
-variable "route53_zone_id" {
-  description = "Route53 호스팅 영역 ID"
-  type        = string
-}
-
-# ACM 인증서 ARN 변수
-variable "acm_certificate_arn" {
-  description = "ACM 인증서 ARN"
-  type        = string
-  default     = ""
-}
-
-# 도메인 이름 변수
-variable "domain_name" {
-  description = "도메인 이름"
-  type        = string
-}
-
 # 시크릿 매니저에서 DB 자격 증명 가져오기
 data "aws_secretsmanager_secret_version" "db_credentials" {
   secret_id = var.secret_manager_arn
@@ -103,14 +148,9 @@ data "aws_db_snapshot" "latest" {
   most_recent           = true
 }
 
-variable "cloudflare_api_token" {
-  description = "CloudFlare API 토큰"
-  type        = string
-  sensitive   = true
-}
-
-variable "cloudflare_zone_id" {
-  description = "CloudFlare Zone ID"
+# ACM 설정
+variable "acm_certificate_arn" {
+  description = "ACM 인증서 ARN"
   type        = string
 }
 
