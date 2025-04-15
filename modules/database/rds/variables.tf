@@ -66,6 +66,12 @@ variable "snapshot_identifier" {
   default     = "service-db-backup"
 }
 
+# 가장 최신 스냅샷을 찾는 데이터 소스
+# data "aws_db_snapshot" "latest" {
+#   db_instance_identifier = var.snapshot_identifier
+#   most_recent           = true
+# }
+
 variable "restore_from_snapshot" {
   description = "스냅샷에서 복원 여부"
   type        = bool
@@ -89,36 +95,6 @@ variable "tags" {
 variable "secret_manager_arn" {
   description = "데이터베이스 자격 증명이 저장된 Secrets Manager 시크릿 ARN"
   type        = string
-}
-
-variable "backup_retention_period" {
-  description = "백업 보관 기간 (일)"
-  type        = number
-  default     = 7
-}
-
-variable "multi_az" {
-  description = "다중 AZ 설정 여부"
-  type        = bool
-  default     = false
-}
-
-variable "publicly_accessible" {
-  description = "외부 접근 가능 여부"
-  type        = bool
-  default     = false
-}
-
-variable "storage_encrypted" {
-  description = "스토리지 암호화 여부"
-  type        = bool
-  default     = true
-}
-
-variable "apply_immediately" {
-  description = "변경사항 즉시 적용 여부"
-  type        = bool
-  default     = true
 }
 
 variable "final_snapshot_identifier" {

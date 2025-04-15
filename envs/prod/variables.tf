@@ -191,13 +191,11 @@ variable "route53_zone_id" {
   type        = string
 }
 
-# Secrets Manager 설정
+# 시크릿 매니저 설정
 variable "secret_manager_arn" {
   description = "Secrets Manager ARN"
   type        = string
 }
-
-
 
 # 스냅샷 이름 변수
 variable "snapshot_identifier" {
@@ -217,24 +215,22 @@ variable "restore_from_snapshot" {
   default     = false
 }
 
-# 시크릿 매니저에서 DB 자격 증명 가져오기
-data "aws_secretsmanager_secret_version" "db_credentials" {
-  secret_id = var.secret_manager_arn
-}
-
-# 가장 최신 스냅샷을 찾는 데이터 소스
-# data "aws_db_snapshot" "latest" {
-#   db_instance_identifier = var.snapshot_identifier
-#   include_public         = true
-#   include_shared         = true
+# # 시크릿 매니저에서 DB 자격 증명 가져오기
+# data "aws_secretsmanager_secret_version" "db_credentials" {
+#   secret_id = var.secret_manager_arn
 # }
 
+# # 가장 최신 스냅샷을 찾는 데이터 소스
+# data "aws_db_snapshot" "latest" {
+#   db_instance_identifier = var.snapshot_identifier
+#   most_recent           = true
+# }
 
-# ACM 설정
-variable "acm_certificate_arn" {
-  description = "ACM 인증서 ARN"
-  type        = string
-}
+# # ACM 설정
+# variable "acm_certificate_arn" {
+#   description = "ACM 인증서 ARN"
+#   type        = string
+# }
 
 # RDS Variables
 variable "rds_engine" {
@@ -287,6 +283,12 @@ variable "rds_backup_retention_period" {
 
 variable "rds_skip_final_snapshot" {
   description = "Skip final snapshot when destroying RDS"
+  type        = bool
+  default     = false
+}
+
+variable "rds_restore_from_snapshot" {
+  description = "스냅샷에서 복원 여부"
   type        = bool
   default     = false
 }

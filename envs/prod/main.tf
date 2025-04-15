@@ -7,6 +7,16 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
+# 시크릿 매니저에서 DB 자격 증명 가져오기
+data "aws_secretsmanager_secret_version" "db_credentials" {
+  secret_id = var.secret_manager_arn
+}
+
+# 가장 최신 스냅샷을 찾는 데이터 소스
+# data "aws_db_snapshot" "latest" {
+#   db_instance_identifier = var.snapshot_identifier
+#   most_recent           = true
+# }
 
 # ================================ network
 
@@ -152,13 +162,13 @@ module "alb_security_group" {
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = ["0.0.0.0/0"]  # CloudFlare IP 범위를 포함
     },
     {
       from_port   = 443
       to_port     = 443
       protocol    = "tcp"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = ["0.0.0.0/0"]  # CloudFlare IP 범위를 포함
     }
   ]
   tags              = merge(var.vpc_tags, { Name = "${var.vpc_name}-alb-sg" })
@@ -246,6 +256,8 @@ module "alb_listener_https" {
   listener_protocol = "HTTPS"
   listener_default_action_type = "forward"
   target_group_arn = module.target_group_9090.target_group_arn
+  
+  certificate_arn = var.certificate_arn
 }
 
 # Target Group 8080 Module
@@ -328,29 +340,21 @@ module "rds_instance" {
   engine = var.rds_engine
   engine_version = var.rds_engine_version
   instance_class = var.rds_instance_class
+
   allocated_storage = var.rds_allocated_storage
+  db_username = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["DB_USER"]
+  db_password = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["DB_PASS"]
+  db_subnet_group_name = "${var.vpc_name}-rds-subnet-group"
+  security_group_ids = [module.rds_security_group.security_group_id]
 
   subnet_ids = [module.private_subnet_c.subnet_id, module.private_subnet_a.subnet_id]
-  security_group_ids = [module.rds_security_group.security_group_id]
   secret_manager_arn = var.secret_manager_arn
   db_password_secret_name = var.secret_manager_arn
   
-  db_username = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["DB_USER"]
-  db_password = jsondecode(data.aws_secretsmanager_secret_version.db_credentials.secret_string)["DB_PASS"]
-
-  # RDS 추가 설정
-  backup_retention_period = var.rds_backup_retention_period
-  multi_az = var.rds_multi_az
-  publicly_accessible = var.rds_publicly_accessible
-  storage_encrypted = var.rds_storage_encrypted
-  apply_immediately = var.rds_apply_immediately
-
-  # 스냅샷 설정
-  snapshot_identifier = var.snapshot_identifier
   skip_final_snapshot = var.rds_skip_final_snapshot
   final_snapshot_identifier = "${var.snapshot_identifier}-${formatdate("YYYYMMDD-hhmmss", timestamp())}"
   
-  tags = merge(var.vpc_tags, { Name = "${var.vpc_name}-rds" })
+  tags = { Name = "${var.vpc_name}-rds" }
 }
 
 
@@ -382,6 +386,16 @@ module "shared_ecr" {
 }
 
 
+# ================================ route53
+
+# Route53 호스팅 영역 모듈
+module "route53" {
+  source = "../../modules/network/route53"
+
+  domain_name = var.domain_name
+  tags = merge(var.vpc_tags, { Name = "${var.vpc_name}-route53" })
+}
+
 # ================================ cloudflare
 
 # CloudFlare DNS 레코드 설정
@@ -389,6 +403,6 @@ resource "cloudflare_record" "alb" {
   zone_id = var.cloudflare_zone_id
   name    = "@"
   type    = "CNAME"
-  value   = module.service_alb.dns_name
-  proxied = true
+  value   = module.service_alb.dns_name  # ALB DNS 이름으로 직접 연결
+  proxied = true  # CloudFlare WAF 활성화
 }

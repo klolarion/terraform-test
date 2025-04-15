@@ -42,6 +42,12 @@ variable "listener_redirect_status_code" {
   default     = null
 }
 
+variable "certificate_arn" {
+  description = "인증서 ARN"
+  type        = string
+  default     = null
+}
+
 
 
 
